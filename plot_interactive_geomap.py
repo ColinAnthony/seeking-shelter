@@ -186,6 +186,24 @@ def plot_folium(province_df, geo_points_data_police_df, geo_points_data_clinics_
     m = folium.Map(location=[-30.259483, 22.937506], tiles='openstreetmap',
                    zoom_start=6, control_scale=True, prefer_canvas=True)
 
+    # add the point data to the map
+    add_point_markers(m, geo_points_data_clinics_df, "Clinic")
+    # add layer control
+    folium.LayerControl().add_to(m)
+    m.save(outfile.replace("index", "clinics"))
+    add_point_markers(m, geo_points_data_police_df, "Police Station")
+    # add layer control
+    folium.LayerControl().add_to(m)
+    m.save(outfile.replace("index", "police"))
+    add_point_markers(m, geo_points_data_courts_df, "Sexual Offence Court")
+    # add layer control
+    folium.LayerControl().add_to(m)
+    m.save(outfile.replace("index", "courts"))
+    add_point_markers(m, geo_points_data_shelters_df, "Shelter")
+    # add layer control
+    folium.LayerControl().add_to(m)
+    m.save(outfile)
+
     # add the incidence data layers to the map
     for i, item in enumerate(labels):
         data_2_dict_4_clrmap = province_df.set_index('Province')[item]
@@ -205,20 +223,11 @@ def plot_folium(province_df, geo_points_data_police_df, geo_points_data_clinics_
 
         add_choropleth(m, jsontxt, item, colormap, data_2_dict_4_clrmap, province_df)
 
-    # add the point data to the map
-    add_point_markers(m, geo_points_data_clinics_df, "Clinic")
-    add_point_markers(m, geo_points_data_police_df, "Police Station")
-    add_point_markers(m, geo_points_data_courts_df, "Sexual Offence Court")
-    add_point_markers(m, geo_points_data_shelters_df, "Shelter")
-
-    # add layer control
-    folium.LayerControl().add_to(m)
-
     # save output
-    m.save(outfile)
+    m.save(outfile.replace("index", "incidence"))
 
 
-def main(police, clinics, courts, shelters, province, crime_data, outpath, name):
+def main():
     """
     methods to plot public resources (courts, police stations, clinics, shelters...
     onto a province shape file with sexual crime incidence data
@@ -238,16 +247,18 @@ def main(police, clinics, courts, shelters, province, crime_data, outpath, name)
     # script_folder = os.path.abspath(script_folder)
 
     # set in and out-file paths and names
-    police = os.path.abspath(police)
-    clinics = os.path.abspath(clinics)
-    courts = os.path.abspath(courts)
-    shelters = os.path.abspath(shelters)
-    province = os.path.abspath(province)
-    crime_data = os.path.abspath(crime_data)
+    get_script_path = os.path.realpath(__file__)
+    parent_path = os.path.split(get_script_path)[0]
+    police = os.path.join(parent_path, "curated_data", "points", "police.csv")
+    clinics = os.path.join(parent_path, "curated_data", "points", "clinics.csv")
+    courts = os.path.join(parent_path, "curated_data", "points", "courts.csv")
+    shelters = os.path.join(parent_path, "curated_data", "points", "shelters.csv")
+    province = os.path.join(parent_path, "curated_data", "province_shape", "Province_New_SANeighbours.shp")
+    crime_data = os.path.join(parent_path, "curated_data", "incidence",
+                              "1sexual_crimes_Incidence_shelters_beds_per_province.csv")
 
-    outpath = os.path.abspath(outpath)
-    name = name
-    outfile = os.path.join(outpath, name)
+    name = "index.html"
+    outfile = os.path.join(parent_path, name)
 
     # process csv_infiles to dataframes
     geo_points_data_police_df = csv_to_geo_dataframe(police)
@@ -255,9 +266,9 @@ def main(police, clinics, courts, shelters, province, crime_data, outpath, name)
     geo_points_data_courts_df = csv_to_geo_dataframe(courts)
     geo_points_data_shelters_df = csv_to_geo_dataframe(shelters)
 
-    outpath = os.path.abspath(outpath)
-    name = name + ".html"
-    outfile = os.path.join(outpath, name)
+    # outpath = os.path.abspath(outpath)
+    # name = name + ".html"
+    # outfile = os.path.join(outpath, name)
 
     # combine crime stats and province dataframes
     crime_data = pd.read_csv(crime_data, sep=',', header=0)
@@ -282,31 +293,31 @@ if __name__ == "__main__":
                                                  'provinces' ,
                                      formatter_class=argparse.ArgumentDefaultsHelpFormatter)
 
-    parser.add_argument('-p', '--police', default=argparse.SUPPRESS, type=str,
-                        help='The input csv file with long and lat coordinates for police stations', required=True)
-    parser.add_argument('-m', '--medical', default=False, type=str,
-                        help='The input csv file with long and lat coordinates for hospitals and clinics', required=False)
-    parser.add_argument('-l', '--legal', default=False, type=str,
-                        help='The input csv file with long and lat coordinates for courts', required=False)
-    parser.add_argument('-s', '--shelters', default=False, type=str,
-                        help='The input csv file with long and lat coordinates for shelters', required=False)
-    parser.add_argument('-c', '--crime_data', default=argparse.SUPPRESS, type=str,
-                        help='The input csv file with crime data per province', required=True)
-    parser.add_argument('-prov', '--province', default=argparse.SUPPRESS, type=str,
-                        help='The shapefile for the provinces', required=True)
-    parser.add_argument('-o', '--outpath', default=argparse.SUPPRESS, type=str,
-                        help='The path for the output file', required=True)
-    parser.add_argument('-n', '--name', default=argparse.SUPPRESS, type=str,
-                        help='The name prefix for the output file', required=True)
+    # parser.add_argument('-p', '--police', default=argparse.SUPPRESS, type=str,
+    #                     help='The input csv file with long and lat coordinates for police stations', required=True)
+    # parser.add_argument('-m', '--medical', default=False, type=str,
+    #                     help='The input csv file with long and lat coordinates for hospitals and clinics', required=False)
+    # parser.add_argument('-l', '--legal', default=False, type=str,
+    #                     help='The input csv file with long and lat coordinates for courts', required=False)
+    # parser.add_argument('-s', '--shelters', default=False, type=str,
+    #                     help='The input csv file with long and lat coordinates for shelters', required=False)
+    # parser.add_argument('-c', '--crime_data', default=argparse.SUPPRESS, type=str,
+    #                     help='The input csv file with crime data per province', required=True)
+    # parser.add_argument('-prov', '--province', default=argparse.SUPPRESS, type=str,
+    #                     help='The shapefile for the provinces', required=True)
+    # parser.add_argument('-o', '--outpath', default=argparse.SUPPRESS, type=str,
+    #                     help='The path for the output file', required=True)
+    # parser.add_argument('-n', '--name', default=argparse.SUPPRESS, type=str,
+    #                     help='The name prefix for the output file', required=True)
+    #
+    # args = parser.parse_args()
+    # police = args.police
+    # medical = args.medical
+    # legal = args.legal
+    # shelters = args.shelters
+    # province = args.province
+    # crime_data = args.crime_data
+    # outpath = args.outpath
+    # name = args.name
 
-    args = parser.parse_args()
-    police = args.police
-    medical = args.medical
-    legal = args.legal
-    shelters = args.shelters
-    province = args.province
-    crime_data = args.crime_data
-    outpath = args.outpath
-    name = args.name
-
-    main(police, medical, legal, shelters, province, crime_data, outpath, name)
+    main()
